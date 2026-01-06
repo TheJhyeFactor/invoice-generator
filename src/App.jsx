@@ -17,7 +17,12 @@ function App() {
     email: 'company@email.com',
     phone: '(555) 123-4567',
     address: '123 Business St, City, State 12345',
-    logo: ''
+    logo: '',
+    bankName: '',
+    accountName: '',
+    accountNumber: '',
+    routingNumber: '',
+    additionalPaymentInfo: ''
   })
 
   const [showInvoiceForm, setShowInvoiceForm] = useState(false)
@@ -374,6 +379,44 @@ function App() {
         doc.setFont(undefined, 'normal')
         const splitNotes = doc.splitTextToSize(invoice.notes, pageWidth - 40)
         doc.text(splitNotes, 20, yPos + 7)
+        yPos += 7 + splitNotes.length * 5
+      }
+
+      // Add payment details if available
+      const hasPaymentInfo = companyInfo.bankName || companyInfo.accountName ||
+                             companyInfo.accountNumber || companyInfo.routingNumber ||
+                             companyInfo.additionalPaymentInfo
+
+      if (hasPaymentInfo) {
+        yPos += 15
+        doc.setFontSize(12)
+        doc.setFont(undefined, 'bold')
+        doc.text('Payment Information:', 20, yPos)
+
+        doc.setFontSize(10)
+        doc.setFont(undefined, 'normal')
+        yPos += 8
+
+        if (companyInfo.bankName) {
+          doc.text(`Bank: ${companyInfo.bankName}`, 20, yPos)
+          yPos += 6
+        }
+        if (companyInfo.accountName) {
+          doc.text(`Account Name: ${companyInfo.accountName}`, 20, yPos)
+          yPos += 6
+        }
+        if (companyInfo.accountNumber) {
+          doc.text(`Account Number: ${companyInfo.accountNumber}`, 20, yPos)
+          yPos += 6
+        }
+        if (companyInfo.routingNumber) {
+          doc.text(`Routing/BSB: ${companyInfo.routingNumber}`, 20, yPos)
+          yPos += 6
+        }
+        if (companyInfo.additionalPaymentInfo) {
+          const splitPaymentInfo = doc.splitTextToSize(companyInfo.additionalPaymentInfo, pageWidth - 40)
+          doc.text(splitPaymentInfo, 20, yPos)
+        }
       }
 
       doc.save(`${invoice.invoiceNumber}.pdf`)
@@ -795,6 +838,7 @@ function App() {
               <h2>Company Settings</h2>
             </div>
             <div className="settings-form">
+              <h3>Company Information</h3>
               <div className="form-group">
                 <label>Company Name</label>
                 <input
@@ -827,6 +871,54 @@ function App() {
                   rows="3"
                 />
               </div>
+
+              <h3 style={{ marginTop: '2rem' }}>Payment Details</h3>
+              <div className="form-group">
+                <label>Bank Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g., Chase Bank, Wells Fargo"
+                  value={companyInfo.bankName}
+                  onChange={(e) => setCompanyInfo({...companyInfo, bankName: e.target.value})}
+                />
+              </div>
+              <div className="form-group">
+                <label>Account Name</label>
+                <input
+                  type="text"
+                  placeholder="Account holder name"
+                  value={companyInfo.accountName}
+                  onChange={(e) => setCompanyInfo({...companyInfo, accountName: e.target.value})}
+                />
+              </div>
+              <div className="form-group">
+                <label>Account Number</label>
+                <input
+                  type="text"
+                  placeholder="Account number"
+                  value={companyInfo.accountNumber}
+                  onChange={(e) => setCompanyInfo({...companyInfo, accountNumber: e.target.value})}
+                />
+              </div>
+              <div className="form-group">
+                <label>Routing Number / BSB</label>
+                <input
+                  type="text"
+                  placeholder="Routing or BSB number"
+                  value={companyInfo.routingNumber}
+                  onChange={(e) => setCompanyInfo({...companyInfo, routingNumber: e.target.value})}
+                />
+              </div>
+              <div className="form-group">
+                <label>Additional Payment Information</label>
+                <textarea
+                  placeholder="e.g., SWIFT code, IBAN, payment terms, etc."
+                  value={companyInfo.additionalPaymentInfo}
+                  onChange={(e) => setCompanyInfo({...companyInfo, additionalPaymentInfo: e.target.value})}
+                  rows="3"
+                />
+              </div>
+
               <button className="btn-primary" onClick={() => showToast('Settings saved', 'success')}>
                 Save Settings
               </button>
@@ -1094,6 +1186,18 @@ function App() {
                   <div className="preview-notes">
                     <h4>Notes:</h4>
                     <p>{currentInvoice.notes}</p>
+                  </div>
+                )}
+
+                {(companyInfo.bankName || companyInfo.accountName || companyInfo.accountNumber ||
+                  companyInfo.routingNumber || companyInfo.additionalPaymentInfo) && (
+                  <div className="preview-payment">
+                    <h4>Payment Information:</h4>
+                    {companyInfo.bankName && <p><strong>Bank:</strong> {companyInfo.bankName}</p>}
+                    {companyInfo.accountName && <p><strong>Account Name:</strong> {companyInfo.accountName}</p>}
+                    {companyInfo.accountNumber && <p><strong>Account Number:</strong> {companyInfo.accountNumber}</p>}
+                    {companyInfo.routingNumber && <p><strong>Routing/BSB:</strong> {companyInfo.routingNumber}</p>}
+                    {companyInfo.additionalPaymentInfo && <p>{companyInfo.additionalPaymentInfo}</p>}
                   </div>
                 )}
               </div>
